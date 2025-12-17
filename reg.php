@@ -152,7 +152,7 @@ exit('<!DOCTYPE html>
     <div class="container">
         <div class="tag">Limited Access</div>
         <h1>一键注册服务</h1>
-        <p>欢迎来到猫猫专属机场。<br/>开启你的异国之旅。</p>
+        <p>很高兴宣布，新一批内测名额已限时开放。<br/>本次升级带来更加流畅、高效、稳定的体验。</p>
         <div class="plan">
             <ul>
                 <li>LinuxDo 一键接入登录</li>
@@ -162,7 +162,7 @@ exit('<!DOCTYPE html>
                 <li>热佬社区免费技术支持</li>
             </ul>
         </div>
-        <a href="/oauth2/login" class="register-btn">立即上车 🚀</a>
+        <a href="?action=login" class="register-btn">立即上车 🚀</a>
     </div>
     ' . $commonEffects . '
 </body>
