@@ -100,7 +100,7 @@ $uuid  = vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 $token = md5(uniqid(random_bytes(16), true));
 $now = time();
 try {
-    $pdo = new PDO(“sqlite:” . “/www/.docker/.data/database.sqlite”);//你的数据库名称与地址
+    $pdo = new PDO("sqlite:" . "/www/.docker/.data/database.sqlite");//你的数据库名称与地址
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $sql = "INSERT INTO v2_user (
@@ -136,4 +136,5 @@ try {
 } catch (PDOException $e) {
     return 'err';
 }
+
 }
