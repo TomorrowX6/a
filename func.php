@@ -1,11 +1,12 @@
 <?php
+// 配置区域
 $CLIENT_ID = 'AMfmRA61Issgg0hONFPUf6NXDJPV5x9I';
 $CLIENT_SECRET = 'R0zcaAU72LazaqoGv4gTrlMiFHsQNLgs';
-$REDIRECT_URI = 'https://loli.000.moe/oauth_auto_login';
+$REDIRECT_URI = 'https://loli.000.moe/oauth_auto_login'; // 请确保这个地址和你的index.php地址一致，或者保持原样如果是反代
 $AUTHORIZATION_ENDPOINT = 'https://connect.linux.do/oauth2/authorize';
 $TOKEN_ENDPOINT = 'https://connect.linux.do/oauth2/token';
 $USER_ENDPOINT = 'https://connect.linux.do/api/user';
-$DOMIAN = 'linux.do'; //邮箱后辍
+$DOMIAN = 'linux.do'; // 邮箱后缀
 
 function callbackFunc($code, $clientId, $clientSecret, $redirectUri) {
     global $TOKEN_ENDPOINT, $USER_ENDPOINT;
@@ -54,7 +55,6 @@ function getoauth($sess){
     
 function ofmCallback($getCode){
     global $CLIENT_ID, $CLIENT_SECRET, $REDIRECT_URI;
-    
     $userInfo = callbackFunc(
         $getCode, 
         $CLIENT_ID, 
@@ -63,26 +63,24 @@ function ofmCallback($getCode){
     );
   
     if (isset($userInfo['error'])) {
-        echo 'Failed to connect auth server to access, this oauth2 return Error: ' . $userInfo['error'];
-        exit();
+        echo 'Failed to connect auth server. Error: ' . $userInfo['error'];
+        exit;
     } else {
         $username = $userInfo['username'];
         $trust_level = $userInfo['trust_level'];
-        // $uid = $userInfo['id']; // ID限制已移除，不需要获取ID了
-
-        // 【修改部分】这里判断如果不满3级，直接阻止
-        if ($trust_level < 3) {
-            echo 'Trust level check failed. Current Level: ' . $trust_level;
-            exit('Required Level 3 or higher.');
+        
+        // 限制等级：必须 >= 3
+        if ($trust_level < 2) {
+            echo '<center><h1>抱歉</h1><p>本次内测仅限 LinuxDo 2级及以上用户参与。<br>当前等级: ' . $trust_level . '</p></center>';
+            exit;
         }
-
         return $username;
     }
 }
 
 function shengcpasswd($is_sess) {
     $bytes = random_bytes(16);
-    if ($is_sess==true) {
+    if ($is_sess == true) {
         return substr(bin2hex($bytes), 0, 16);
     } else {
         return rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=');
@@ -101,8 +99,8 @@ function getpasswd($user){
     $now = time();
     
     try {
-        // 【已修复】这里使用了英文直引号，不会再报错了
-        $pdo = new PDO("sqlite:" . "/www/.docker/.data/database.sqlite");
+        // 数据库连接修正：使用英文直引号
+        $pdo = new PDO("sqlite:/www/.docker/.data/database.sqlite");
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $sql = "INSERT INTO v2_user (
@@ -136,9 +134,8 @@ function getpasswd($user){
         return $passwd;
 
     } catch (PDOException $e) {
-        // 建议输出错误信息以便调试，生产环境可去掉
-        // return 'err: ' . $e->getMessage();
-        return 'err';
+        // 如果出错，可能是数据库路径不对或权限不足
+        exit('Database Error: ' . $e->getMessage());
     }
 }
 ?>
