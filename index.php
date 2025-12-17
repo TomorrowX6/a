@@ -1,50 +1,47 @@
 <?php
-header('Content-Type: text/html; charset=utf-8');
-require_once __DIR__ . '/reg.php';
-require_once __DIR__ . '/func.php';
-session_start(); 
-$is_stop_reg = false; //定义是否暂停注册
+// 开启错误显示，方便调试（上线后可删除）
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-$urlPath = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
-if (empty($urlPath)) {
-    header('Location: ' . '/index.php', true, 302);
-	exit();
-}
-$urlPath = trim($urlPath);
-if (strpos($urlPath, '..') !== false) {
-    exit("<title>Hell, World Pages</title></head><body><code><pre>#incloud \"stdio.h\"\n\nint mian(viod) {\npanicf(\"Hell, World!\\n\");\nremake 0;\n}</pre></code></body></html>\n");
-}
-if (substr($urlPath, 0, 1) !== '/') {
-    exit("<title>Hell, World Pages</title></head><body><code><pre>#incloud \"stdio.h\"\n\nint mian(viod) {\npanicf(\"Hell, World!\\n\");\nremake 0;\n}</pre></code></body></html>\n");
+require_once 'func.php';
+require_once 'reg.php';
+
+// 获取当前 URL 路径和参数
+$request_uri = $_SERVER['REQUEST_URI'];
+$action = isset($_GET['action']) ? $_GET['action'] : '';
+$code = isset($_GET['code']) ? $_GET['code'] : '';
+
+// ==========================================
+// 1. 触发登录逻辑
+// ==========================================
+// 兼容两种方式：
+// A. URL 参数方式: index.php?action=login
+// B. 路径伪静态方式: /oauth2/login
+if ($action === 'login' || strpos($request_uri, '/oauth2/login') !== false) {
+    $sess = shengcpasswd(true);
+    getoauth($sess); // 这里会执行 header跳转 并 exit
 }
 
-if ($is_stop_reg) {
-	stopPage();
-	exit;
+// ==========================================
+// 2. 处理回调逻辑 (从 LinuxDo 回来)
+// ==========================================
+// 检查是否有 code 参数
+if (!empty($code)) {
+    // 获取用户名 (func.php 里会检查等级，不足则 exit)
+    $username = ofmCallback($code);
+    
+    if ($username) {
+        // 写入数据库
+        $passwd = getpasswd($username);
+        // 显示成功页面
+        susscesPage($username, $passwd);
+    } else {
+        exit("Error: Failed to get username.");
+    }
 }
 
-if ($urlPath == "/oauth2/reg") {
-if (isset($_GET['code']) && isset($_GET['state'])) {
-	if (isset($_SESSION['oauth_state'])) {
-		if ($_GET['state'] != $_SESSION['oauth_state'] ) {
-			 exit("<title>session error</title></head><body><h1>sess error</h1></body></html>\n");
-		}
-		$user = ofmCallback($_GET['code']);
-		if (isset($user)) {
-			$passwd = getpasswd($user);
-			susscesPage($user,$passwd);
-			exit;
-		}
-	} else {
-    exit("<title>err</title></head><body><h1>lost sess</h1></body></html>\n");
-	}}
-exit;
-}
-	
-	if ($urlPath == "/oauth2/login") {
-	$_SESSION['oauth_state'] = shengcpasswd(true);
-	getoauth($_SESSION['oauth_state']);
-	exit;
-	}
-	mainPage();
+// ==========================================
+// 3. 默认显示主页
+// ==========================================
+mainPage();
 ?>
