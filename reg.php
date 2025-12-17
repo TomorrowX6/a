@@ -1,20 +1,20 @@
 <?php
 
 // ==========================================
-// 公共特效代码块 (雪花 + FPS + 相关CSS)
-// 使用 <<<'EOT' (Nowdoc) 语法，确保 PHP 不会误解析 JS 中的 ${} 符号
+// 公共特效代码块 (修复版)
+// 手动转义了 JS 中的 $ 符号 (\$)，防止 PHP 报错
 // ==========================================
-$commonEffects = <<<'EOT'
+$commonEffects = <<<EOT
 <canvas id="snowCanvas"></canvas>
 <div id="fpsCounter">FPS: --</div>
 
 <style>
-    /* 雪花 Canvas 样式，置于最底层且不挡鼠标事件 */
+    /* 雪花 Canvas 样式 */
     #snowCanvas {
         position: fixed;
         top: 0; left: 0;
         width: 100%; height: 100%;
-        z-index: -1; /* 确保在内容之下 */
+        z-index: -1;
         pointer-events: none;
     }
     /* FPS 计数器样式 */
@@ -45,7 +45,7 @@ $commonEffects = <<<'EOT'
     const ctx = canvas.getContext('2d');
     let width, height;
     const particles = [];
-    const particleCount = 100; // 雪花数量
+    const particleCount = 100;
 
     function resize() {
         width = canvas.width = window.innerWidth;
@@ -57,22 +57,22 @@ $commonEffects = <<<'EOT'
     class Snowflake {
         constructor() {
             this.reset();
-            this.y = Math.random() * height; // 初始随机分布
+            this.y = Math.random() * height;
         }
         reset() {
             this.x = Math.random() * width;
             this.y = -10;
-            this.speedY = Math.random() * 1.5 + 0.5; // 下落速度
-            this.speedX = Math.random() * 1 - 0.5;   // 水平飘动
-            this.radius = Math.random() * 2.5 + 0.5; // 大小
+            this.speedY = Math.random() * 1.5 + 0.5;
+            this.speedX = Math.random() * 1 - 0.5;
+            this.radius = Math.random() * 2.5 + 0.5;
             this.opacity = Math.random() * 0.5 + 0.3;
-            // 带一点点粉色的白雪 (JS模板字符串，Nowdoc下安全)
-            this.color = `rgba(255, ${230 + Math.random()*25}, ${240 + Math.random()*15}, ${this.opacity})`;
+            
+            // 【关键修复】这里的 $ 符号前加了反斜杠 \，防止 PHP 解析
+            this.color = `rgba(255, \${230 + Math.random()*25}, \${240 + Math.random()*15}, \${this.opacity})`;
         }
         update() {
             this.y += this.speedY;
             this.x += this.speedX;
-            // 边界检查，超出重置
             if (this.y > height + 10 || this.x > width + 10 || this.x < -10) {
                 this.reset();
             }
@@ -85,16 +85,13 @@ $commonEffects = <<<'EOT'
         }
     }
 
-    // 初始化雪花
     for (let i = 0; i < particleCount; i++) {
         particles.push(new Snowflake());
     }
 
-    // 动画循环
     function animate() {
         ctx.clearRect(0, 0, width, height);
         
-        // 更新和绘制雪花
         particles.forEach(p => {
             p.update();
             p.draw();
@@ -104,7 +101,8 @@ $commonEffects = <<<'EOT'
         const now = performance.now();
         frameCount++;
         if (now - lastTime >= 1000) {
-            fpsDisplay.innerText = `FPS: ${frameCount}`;
+            // 【关键修复】这里的 $ 符号前加了反斜杠 \
+            fpsDisplay.innerText = `FPS: \${frameCount}`;
             frameCount = 0;
             lastTime = now;
         }
@@ -129,11 +127,10 @@ exit('<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>注册服务 | 立即上车</title>
     <style>
-        /* 主题色定义：粉色系 */
         :root { 
-            --primary: #ff7eb3; /* 亮粉 */
-            --secondary: #ff4f8b; /* 深粉/洋红 */
-            --bg-grad: linear-gradient(135deg, #1a0a13, #2e1621); /* 深粉紫黑色背景 */
+            --primary: #ff7eb3; 
+            --secondary: #ff4f8b; 
+            --bg-grad: linear-gradient(135deg, #1a0a13, #2e1621); 
         }
         body { margin: 0; font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; background: var(--bg-grad); min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
         .container { background: rgba(255,255,255,0.03); padding: 40px; border-radius: 20px; max-width: 480px; width: 90%; text-align: center; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
