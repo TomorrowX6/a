@@ -1,9 +1,8 @@
 <?php
 // ==========================================
 // 公共特效代码块
-// JS中的 $ 已转义为 \$ 防止 PHP 报错
 // ==========================================
-$commonEffects = <<<EOT
+$commonEffects = <<<'EOT'
 <canvas id="snowCanvas"></canvas>
 <div id="fpsCounter">FPS: --</div>
 
@@ -36,8 +35,8 @@ $commonEffects = <<<EOT
             this.speedX = Math.random() * 1 - 0.5;
             this.radius = Math.random() * 2.5 + 0.5;
             this.opacity = Math.random() * 0.5 + 0.3;
-            // 修复：使用 \$ 转义
-            this.color = `rgba(255, \${230 + Math.random()*25}, \${240 + Math.random()*15}, \${this.opacity})`;
+            // JS中的变量，Nowdoc模式下不会被PHP解析，安全
+            this.color = `rgba(255, ${230 + Math.random()*25}, ${240 + Math.random()*15}, ${this.opacity})`;
         }
         update() {
             this.y += this.speedY; this.x += this.speedX;
@@ -52,7 +51,7 @@ $commonEffects = <<<EOT
         ctx.clearRect(0, 0, width, height);
         particles.forEach(p => { p.update(); p.draw(); });
         const now = performance.now(); frameCount++;
-        if (now - lastTime >= 1000) { fpsDisplay.innerText = `FPS: \${frameCount}`; frameCount = 0; lastTime = now; }
+        if (now - lastTime >= 1000) { fpsDisplay.innerText = `FPS: ${frameCount}`; frameCount = 0; lastTime = now; }
         requestAnimationFrame(animate);
     }
     animate();
@@ -61,12 +60,13 @@ $commonEffects = <<<EOT
 EOT;
 
 // ==========================================
-// 页面函数
+// 页面函数 (使用混排模式，避免引号报错)
 // ==========================================
 
 function mainPage(){
-global $commonEffects;
-exit('<!DOCTYPE html>
+    global $commonEffects;
+?>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -106,14 +106,17 @@ exit('<!DOCTYPE html>
         </div>
         <a href="?action=login" class="register-btn">立即上车 🚀</a>
     </div>
-    ' . $commonEffects . '
+    <?php echo $commonEffects; ?>
 </body>
-</html>');
+</html>
+<?php
+    exit;
 }
 
-function susscesPage($user,$passwd){
-global $commonEffects;
-exit ('<!DOCTYPE html>
+function susscesPage($user, $passwd){
+    global $commonEffects;
+?>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -137,4 +140,133 @@ exit ('<!DOCTYPE html>
         .btn-outline { background: transparent; color: #ffabc8; border: 1px solid rgba(255,255,255,0.1); }
         .btn-outline:hover { border-color: #ff7eb3; color: #fff; background: rgba(255,126,179,0.1); }
         footer { margin-top: 30px; font-size: 0.8em; color: #885f73; }
-        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,79,13
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,79,139,0.9); color: white; padding: 10px 20px; border-radius: 30px; font-size: 0.9em; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon-box">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        </div>
+        <h2>注册成功!</h2>
+        <p class="subtitle">您的账户已就绪。请务必保存下方信息，<br>出于安全考虑，密码仅显示一次。</p>
+        
+        <div class="credential-box" id="credBox">
+            <div class="c-row">
+                <span class="c-label">登录用户名</span>
+                <span class="c-value" id="uField"><?php echo $user; ?>@linux.do</span>
+            </div>
+            <div class="c-row">
+                <span class="c-label">初始密码</span>
+                <span class="c-value" id="pField"><?php echo $passwd; ?></span>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="copyInfo()">复制账号信息</button>
+        <button class="btn btn-outline" onclick="window.location.href='/'">跳转到登录页</button>
+        
+        <footer>© 2077 pi.oldfriend.me</footer>
+    </div>
+    <div class="toast" id="toast">已复制到剪贴板</div>
+
+    <script>
+        function copyInfo() {
+            const u = document.getElementById("uField").innerText;
+            const p = document.getElementById("pField").innerText;
+            const text = "用户名: " + u + "\n密码: " + p;
+            navigator.clipboard.writeText(text).then(() => {
+                const t = document.getElementById("toast");
+                t.classList.add("show");
+                setTimeout(() => t.classList.remove("show"), 2000);
+            });
+        }
+    </script>
+    <?php echo $commonEffects; ?>
+</body>
+</html>
+<?php
+    exit;
+}
+
+function existPage($user){
+    global $commonEffects;
+?>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户已存在</title>
+    <style>
+        body { margin: 0; font-family: "PingFang SC", "Segoe UI", sans-serif; background: #1a0a13; min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
+        .container { background: #24101a; padding: 50px 30px; border-radius: 16px; max-width: 400px; width: 90%; text-align: center; border: 1px solid #3d1e2c; box-shadow: 0 0 40px rgba(0,0,0,0.5); position: relative; z-index: 1; }
+        .icon { font-size: 60px; margin-bottom: 20px; animation: bounce 2s infinite; }
+        h1 { font-size: 1.5em; margin: 0 0 15px; color: #ffeb3b; }
+        p { color: #e6aecb; line-height: 1.6; font-size: 0.95em; margin-bottom: 0; }
+        .info-box { background: rgba(255,235,59,0.1); border: 1px solid rgba(255,235,59,0.3); border-radius: 8px; padding: 15px; margin: 20px 0; color: #fff9c4; font-size: 0.9em; word-break: break-all; }
+        .btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 1em; cursor: pointer; transition: 0.2s; font-weight: 600; margin-top: 20px; text-decoration: none; box-sizing: border-box; }
+        .btn-primary { background: linear-gradient(90deg, #ff7eb3, #ff4f8b); color: #fff; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,79,139,0.5); }
+        .footer { font-size: 0.8em; color: #885f73; margin-top: 20px; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">⚠️</div>
+        <h1>无需重复注册</h1>
+        <p>系统检测到您的 LinuxDo 账号已关联过服务。</p>
+        
+        <div class="info-box">
+            当前账号: <?php echo $user; ?>
+        </div>
+
+        <p style="font-size: 0.85em;">如果您忘记了密码，请联系管理员重置。<br>或直接使用现有账号登录。</p>
+
+        <a href="/" class="btn btn-primary">返回首页</a>
+        <div class="footer">SYSTEM NOTICE</div>
+    </div>
+    <?php echo $commonEffects; ?>
+</body>
+</html>
+<?php
+    exit;
+}
+
+function stopPage(){
+    global $commonEffects;
+?>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>暂时封车</title>
+    <style>
+        body { margin: 0; font-family: "PingFang SC", "Segoe UI", sans-serif; background: #1a0a13; min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
+        .container { background: #24101a; padding: 50px 30px; border-radius: 16px; max-width: 400px; width: 90%; text-align: center; border: 1px solid #3d1e2c; box-shadow: 0 0 40px rgba(0,0,0,0.5); position: relative; z-index: 1; }
+        .icon { font-size: 60px; margin-bottom: 20px; animation: pulse 2s infinite; }
+        h1 { font-size: 1.5em; margin: 0 0 15px; color: #ff4f8b; }
+        p { color: #e6aecb; line-height: 1.6; font-size: 0.95em; margin-bottom: 0; }
+        .divider { height: 1px; background: #3d1e2c; margin: 25px 0; }
+        .footer { font-size: 0.8em; color: #885f73; }
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">⛔</div>
+        <h1>此车已封</h1>
+        <p>当前批次注册名额已满。<br>为保证服务质量，我们暂时关闭了注册入口。</p>
+        <div class="divider"></div>
+        <p style="font-size: 0.85em; color: #ffabc8;">已上车用户不受影响，请直接登录使用。<br>下一批次开放时间待定。</p>
+        <div class="footer" style="margin-top: 20px;">SYSTEM STATUS: LOCKED</div>
+    </div>
+    <?php echo $commonEffects; ?>
+</body>
+</html>
+<?php
+    exit;
+}
+?>
