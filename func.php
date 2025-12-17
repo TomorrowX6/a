@@ -70,9 +70,9 @@ function ofmCallback($getCode){
         $trust_level = $userInfo['trust_level'];
         
         // 【修改点】只允许 3 级及以上
-        if ($trust_level < 3) {
+        if ($trust_level < 2) {
             header('Content-Type: text/html; charset=utf-8');
-            exit("<center><h1>等级不足</h1><p>需要 LinuxDo 3级及以上。<br>你当前等级: {$trust_level}</p></center>");
+            exit("<center><h1>等级不足</h1><p>需要 LinuxDo 2级及以上。<br>你当前等级: {$trust_level}</p></center>");
         }
         return $username;
     }
@@ -141,3 +141,4 @@ function getpasswd($user){
     }
 }
 ?>
+
