@@ -72,7 +72,7 @@ function mainPage(){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>注册服务 | 立即上车</title>
+    <title>Kawaii | 立即上车</title>
     <style>
         :root { --primary: #ff7eb3; --secondary: #ff4f8b; --bg-grad: linear-gradient(135deg, #1a0a13, #2e1621); }
         body { margin: 0; font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; background: var(--bg-grad); min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
@@ -94,8 +94,8 @@ function mainPage(){
 <body>
     <div class="container">
         <div class="tag">Limited Access</div>
-        <h1>一键注册服务</h1>
-        <p>很高兴宣布，新一批内测名额已限时开放。<br/>本次升级带来更加流畅、高效、稳定的体验。</p>
+        <h1>Kawaii</h1>
+        <p>欢迎来到猫猫专属机场。<br/>开启你的异国之旅。</p>
         <div class="plan">
             <ul>
                 <li>LinuxDo 一键接入登录</li>
