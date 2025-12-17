@@ -1,64 +1,34 @@
 <?php
-
 // ==========================================
-// 公共特效代码块 (修复版)
-// 手动转义了 JS 中的 $ 符号 (\$)，防止 PHP 报错
+// 公共特效代码块
+// JS中的 $ 已转义为 \$ 防止 PHP 报错
 // ==========================================
 $commonEffects = <<<EOT
 <canvas id="snowCanvas"></canvas>
 <div id="fpsCounter">FPS: --</div>
 
 <style>
-    /* 雪花 Canvas 样式 */
-    #snowCanvas {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        z-index: -1;
-        pointer-events: none;
-    }
-    /* FPS 计数器样式 */
-    #fpsCounter {
-        position: fixed;
-        top: 10px; left: 10px;
-        color: rgba(255,255,255,0.8);
-        font-family: "JetBrains Mono", Consolas, monospace;
-        font-size: 12px;
-        z-index: 9999;
-        background: rgba(0,0,0,0.4);
-        padding: 4px 8px;
-        border-radius: 4px;
-        backdrop-filter: blur(5px);
-        border: 1px solid rgba(255,255,255,0.1);
-    }
+    #snowCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+    #fpsCounter { position: fixed; top: 10px; left: 10px; color: rgba(255,255,255,0.8); font-family: "JetBrains Mono", Consolas, monospace; font-size: 12px; z-index: 9999; background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 4px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); }
 </style>
 
 <script>
 (function(){
-    // --- FPS 计算设置 ---
     const fpsDisplay = document.getElementById('fpsCounter');
     let lastTime = performance.now();
     let frameCount = 0;
-
-    // --- 雪花特效设置 ---
     const canvas = document.getElementById('snowCanvas');
     const ctx = canvas.getContext('2d');
     let width, height;
     const particles = [];
     const particleCount = 100;
 
-    function resize() {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-    }
+    function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
     window.addEventListener('resize', resize);
     resize();
 
     class Snowflake {
-        constructor() {
-            this.reset();
-            this.y = Math.random() * height;
-        }
+        constructor() { this.reset(); this.y = Math.random() * height; }
         reset() {
             this.x = Math.random() * width;
             this.y = -10;
@@ -66,47 +36,23 @@ $commonEffects = <<<EOT
             this.speedX = Math.random() * 1 - 0.5;
             this.radius = Math.random() * 2.5 + 0.5;
             this.opacity = Math.random() * 0.5 + 0.3;
-            
-            // 【关键修复】这里的 $ 符号前加了反斜杠 \，防止 PHP 解析
+            // 修复：使用 \$ 转义
             this.color = `rgba(255, \${230 + Math.random()*25}, \${240 + Math.random()*15}, \${this.opacity})`;
         }
         update() {
-            this.y += this.speedY;
-            this.x += this.speedX;
-            if (this.y > height + 10 || this.x > width + 10 || this.x < -10) {
-                this.reset();
-            }
+            this.y += this.speedY; this.x += this.speedX;
+            if (this.y > height + 10 || this.x > width + 10 || this.x < -10) this.reset();
         }
-        draw() {
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-            ctx.fillStyle = this.color;
-            ctx.fill();
-        }
+        draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill(); }
     }
 
-    for (let i = 0; i < particleCount; i++) {
-        particles.push(new Snowflake());
-    }
+    for (let i = 0; i < particleCount; i++) particles.push(new Snowflake());
 
     function animate() {
         ctx.clearRect(0, 0, width, height);
-        
-        particles.forEach(p => {
-            p.update();
-            p.draw();
-        });
-
-        // FPS 计算
-        const now = performance.now();
-        frameCount++;
-        if (now - lastTime >= 1000) {
-            // 【关键修复】这里的 $ 符号前加了反斜杠 \
-            fpsDisplay.innerText = `FPS: \${frameCount}`;
-            frameCount = 0;
-            lastTime = now;
-        }
-
+        particles.forEach(p => { p.update(); p.draw(); });
+        const now = performance.now(); frameCount++;
+        if (now - lastTime >= 1000) { fpsDisplay.innerText = `FPS: \${frameCount}`; frameCount = 0; lastTime = now; }
         requestAnimationFrame(animate);
     }
     animate();
@@ -115,7 +61,7 @@ $commonEffects = <<<EOT
 EOT;
 
 // ==========================================
-// 页面函数定义
+// 页面函数
 // ==========================================
 
 function mainPage(){
@@ -127,11 +73,7 @@ exit('<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>注册服务 | 立即上车</title>
     <style>
-        :root { 
-            --primary: #ff7eb3; 
-            --secondary: #ff4f8b; 
-            --bg-grad: linear-gradient(135deg, #1a0a13, #2e1621); 
-        }
+        :root { --primary: #ff7eb3; --secondary: #ff4f8b; --bg-grad: linear-gradient(135deg, #1a0a13, #2e1621); }
         body { margin: 0; font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; background: var(--bg-grad); min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
         .container { background: rgba(255,255,255,0.03); padding: 40px; border-radius: 20px; max-width: 480px; width: 90%; text-align: center; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
         .container::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,126,179,0.15) 0%, transparent 60%); z-index: -1; animation: rotate 15s linear infinite; }
@@ -195,83 +137,4 @@ exit ('<!DOCTYPE html>
         .btn-outline { background: transparent; color: #ffabc8; border: 1px solid rgba(255,255,255,0.1); }
         .btn-outline:hover { border-color: #ff7eb3; color: #fff; background: rgba(255,126,179,0.1); }
         footer { margin-top: 30px; font-size: 0.8em; color: #885f73; }
-        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,79,139,0.9); color: white; padding: 10px 20px; border-radius: 30px; font-size: 0.9em; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; }
-        .toast.show { opacity: 1; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="icon-box">
-            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-        </div>
-        <h2>注册成功!</h2>
-        <p class="subtitle">您的账户已就绪。请务必保存下方信息，<br>出于安全考虑，密码仅显示一次。</p>
-        
-        <div class="credential-box" id="credBox">
-            <div class="c-row">
-                <span class="c-label">登录用户名</span>
-                <span class="c-value" id="uField">' . $user. '@linux.do</span>
-            </div>
-            <div class="c-row">
-                <span class="c-label">初始密码</span>
-                <span class="c-value" id="pField">' . $passwd .'</span>
-            </div>
-        </div>
-
-        <button class="btn btn-primary" onclick="copyInfo()">复制账号信息</button>
-        <button class="btn btn-outline" onclick="window.location.href=\'/\'">跳转到登录页</button>
-        
-        <footer>© 2077 pi.oldfriend.me</footer>
-    </div>
-    <div class="toast" id="toast">已复制到剪贴板</div>
-
-    <script>
-        function copyInfo() {
-            const u = document.getElementById("uField").innerText;
-            const p = document.getElementById("pField").innerText;
-            const text = "用户名: " + u + "\\n密码: " + p;
-            navigator.clipboard.writeText(text).then(() => {
-                const t = document.getElementById("toast");
-                t.classList.add("show");
-                setTimeout(() => t.classList.remove("show"), 2000);
-            });
-        }
-    </script>
-    ' . $commonEffects . '
-</body>
-</html>');
-}
-
-function stopPage(){
-global $commonEffects;
-exit ('<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>暂时封车</title>
-    <style>
-        body { margin: 0; font-family: "PingFang SC", "Segoe UI", sans-serif; background: #1a0a13; min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
-        .container { background: #24101a; padding: 50px 30px; border-radius: 16px; max-width: 400px; width: 90%; text-align: center; border: 1px solid #3d1e2c; box-shadow: 0 0 40px rgba(0,0,0,0.5); position: relative; z-index: 1; }
-        .icon { font-size: 60px; margin-bottom: 20px; animation: pulse 2s infinite; }
-        h1 { font-size: 1.5em; margin: 0 0 15px; color: #ff4f8b; }
-        p { color: #e6aecb; line-height: 1.6; font-size: 0.95em; margin-bottom: 0; }
-        .divider { height: 1px; background: #3d1e2c; margin: 25px 0; }
-        .footer { font-size: 0.8em; color: #885f73; }
-        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="icon">⛔</div>
-        <h1>此车已封</h1>
-        <p>当前批次注册名额已满。<br>为保证服务质量，我们暂时关闭了注册入口。</p>
-        <div class="divider"></div>
-        <p style="font-size: 0.85em; color: #ffabc8;">已上车用户不受影响，请直接登录使用。<br>下一批次开放时间待定。</p>
-        <div class="footer" style="margin-top: 20px;">SYSTEM STATUS: LOCKED</div>
-    </div>
-    ' . $commonEffects . '
-</body>
-</html>');
-}
-?>
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,79,13
