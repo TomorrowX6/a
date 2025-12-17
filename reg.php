@@ -167,7 +167,7 @@ function susscesPage($user, $passwd){
         <button class="btn btn-primary" onclick="copyInfo()">复制账号信息</button>
         <button class="btn btn-outline" onclick="window.location.href='/'">跳转到登录页</button>
         
-        <footer>© 2077 pi.oldfriend.me</footer>
+        <footer>© 2077 loli.000.moe</footer>
     </div>
     <div class="toast" id="toast">已复制到剪贴板</div>
 
