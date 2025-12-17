@@ -1,6 +1,7 @@
 <?php
 // ==========================================
 // 公共特效代码块
+// 使用 Nowdoc (<<<'EOT')，不需要转义任何字符，最安全
 // ==========================================
 $commonEffects = <<<'EOT'
 <canvas id="snowCanvas"></canvas>
@@ -35,7 +36,7 @@ $commonEffects = <<<'EOT'
             this.speedX = Math.random() * 1 - 0.5;
             this.radius = Math.random() * 2.5 + 0.5;
             this.opacity = Math.random() * 0.5 + 0.3;
-            // JS中的变量，Nowdoc模式下不会被PHP解析，安全
+            // Nowdoc模式下不需要转义$
             this.color = `rgba(255, ${230 + Math.random()*25}, ${240 + Math.random()*15}, ${this.opacity})`;
         }
         update() {
@@ -60,7 +61,7 @@ $commonEffects = <<<'EOT'
 EOT;
 
 // ==========================================
-// 页面函数 (使用混排模式，避免引号报错)
+// 页面函数 (使用 PHP/HTML 混排模式)
 // ==========================================
 
 function mainPage(){
