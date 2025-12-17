@@ -2,9 +2,9 @@
 
 // ==========================================
 // 公共特效代码块 (雪花 + FPS + 相关CSS)
-// 为了避免重复代码，将其定义为一个变量，在每个页面底部引入
+// 使用 <<<'EOT' (Nowdoc) 语法，确保 PHP 不会误解析 JS 中的 ${} 符号
 // ==========================================
-$commonEffects = <<<EOT
+$commonEffects = <<<'EOT'
 <canvas id="snowCanvas"></canvas>
 <div id="fpsCounter">FPS: --</div>
 
@@ -45,7 +45,7 @@ $commonEffects = <<<EOT
     const ctx = canvas.getContext('2d');
     let width, height;
     const particles = [];
-    const particleCount = 100; // 雪花数量，可自行调整
+    const particleCount = 100; // 雪花数量
 
     function resize() {
         width = canvas.width = window.innerWidth;
@@ -66,8 +66,8 @@ $commonEffects = <<<EOT
             this.speedX = Math.random() * 1 - 0.5;   // 水平飘动
             this.radius = Math.random() * 2.5 + 0.5; // 大小
             this.opacity = Math.random() * 0.5 + 0.3;
-            // 带一点点粉色的白雪
-            this.color = `rgba(255, ${230 + Math.random()*25}, ${240 + Math.random()*15}, \${this.opacity})`;
+            // 带一点点粉色的白雪 (JS模板字符串，Nowdoc下安全)
+            this.color = `rgba(255, ${230 + Math.random()*25}, ${240 + Math.random()*15}, ${this.opacity})`;
         }
         update() {
             this.y += this.speedY;
@@ -104,7 +104,7 @@ $commonEffects = <<<EOT
         const now = performance.now();
         frameCount++;
         if (now - lastTime >= 1000) {
-            fpsDisplay.innerText = `FPS: \${frameCount}`;
+            fpsDisplay.innerText = `FPS: ${frameCount}`;
             frameCount = 0;
             lastTime = now;
         }
@@ -116,6 +116,9 @@ $commonEffects = <<<EOT
 </script>
 EOT;
 
+// ==========================================
+// 页面函数定义
+// ==========================================
 
 function mainPage(){
 global $commonEffects;
@@ -126,27 +129,23 @@ exit('<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>注册服务 | 立即上车</title>
     <style>
-        /* 主题色定义：改为粉色系 */
+        /* 主题色定义：粉色系 */
         :root { 
             --primary: #ff7eb3; /* 亮粉 */
             --secondary: #ff4f8b; /* 深粉/洋红 */
-            --bg-grad: linear-gradient(135deg, #1a0a13, #2e1621); /* 背景改为深粉紫黑色 */
+            --bg-grad: linear-gradient(135deg, #1a0a13, #2e1621); /* 深粉紫黑色背景 */
         }
         body { margin: 0; font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; background: var(--bg-grad); min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
         .container { background: rgba(255,255,255,0.03); padding: 40px; border-radius: 20px; max-width: 480px; width: 90%; text-align: center; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
-        /* 背景光晕改为粉色 */
         .container::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,126,179,0.15) 0%, transparent 60%); z-index: -1; animation: rotate 15s linear infinite; }
         h1 { font-size: 2.2em; background: linear-gradient(to right, #fff, #ffd1e3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; font-weight: 700; letter-spacing: 1px; }
         p { font-size: 1em; color: #e6aecb; line-height: 1.6; margin-bottom: 30px; font-weight: 300; }
-        /* Tag 样式改为粉色 */
         .tag { display: inline-block; padding: 4px 12px; border-radius: 50px; background: rgba(255,126,179,0.2); color: #ff7eb3; font-size: 0.8em; margin-bottom: 20px; border: 1px solid rgba(255,126,179,0.3); }
         .plan { text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid rgba(255,255,255,0.05); }
         .plan ul { list-style: none; padding: 0; margin: 0; }
         .plan li { padding: 10px 0; display: flex; align-items: center; color: #e6aecb; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .plan li:last-child { border-bottom: none; }
-        /* 勾选图标改为粉色 */
         .plan li::before { content: "✓"; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: var(--primary); color: #fff; border-radius: 50%; margin-right: 12px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 5px rgba(255,126,179,0.4); }
-        /* 按钮改为粉色渐变 */
         .register-btn { display: block; width: 100%; padding: 16px; margin-top: 25px; font-size: 1.1em; font-weight: 600; color: #fff; background: linear-gradient(90deg, var(--primary), var(--secondary)); border: none; border-radius: 12px; cursor: pointer; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(255,79,139,0.4); }
         .register-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,79,139,0.6); }
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -156,7 +155,7 @@ exit('<!DOCTYPE html>
     <div class="container">
         <div class="tag">Limited Access</div>
         <h1>一键注册服务</h1>
-        <p>欢迎来到猫猫专属机场<br/>开启你的异国之旅</p>
+        <p>欢迎来到猫猫专属机场。<br/>开启你的异国之旅。</p>
         <div class="plan">
             <ul>
                 <li>LinuxDo 一键接入登录</li>
@@ -182,10 +181,8 @@ exit ('<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>注册成功</title>
     <style>
-        /* 背景改为粉色系深色背景 */
         body { margin: 0; font-family: "PingFang SC", "Segoe UI", sans-serif; background: linear-gradient(135deg, #1a0a13, #2e1621, #3d1e2c); min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
         .container { background: rgba(255,255,255,0.05); padding: 40px; border-radius: 16px; width: 90%; max-width: 500px; text-align: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-        /* 图标盒子改为粉色渐变 */
         .icon-box { width: 80px; height: 80px; background: linear-gradient(135deg, #ff7eb3, #ff4f8b); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 10px 20px rgba(255, 126, 179, 0.3); }
         .icon-box svg { width: 40px; height: 40px; fill: #fff; }
         h2 { font-size: 1.8em; margin: 0 0 10px; color: #fff; }
@@ -194,10 +191,8 @@ exit ('<!DOCTYPE html>
         .c-row { margin-bottom: 15px; }
         .c-row:last-child { margin-bottom: 0; }
         .c-label { display: block; font-size: 0.8em; color: #ffabc8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        /* 账号密码显示颜色改为亮粉色 */
         .c-value { display: block; font-size: 1.1em; color: #ff7eb3; font-family: "JetBrains Mono", Consolas, monospace; word-break: break-all; user-select: text; text-shadow: 0 0 10px rgba(255,126,179,0.3); }
         .btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 1em; cursor: pointer; transition: 0.2s; font-weight: 600; }
-        /* 主按钮改为粉色 */
         .btn-primary { background: linear-gradient(90deg, #ff7eb3, #ff4f8b); color: #fff; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(255,79,139,0.3); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,79,139,0.5); }
         .btn-outline { background: transparent; color: #ffabc8; border: 1px solid rgba(255,255,255,0.1); }
@@ -259,11 +254,9 @@ exit ('<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>暂时封车</title>
     <style>
-        /* 背景改为粉色系深色 */
         body { margin: 0; font-family: "PingFang SC", "Segoe UI", sans-serif; background: #1a0a13; min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
         .container { background: #24101a; padding: 50px 30px; border-radius: 16px; max-width: 400px; width: 90%; text-align: center; border: 1px solid #3d1e2c; box-shadow: 0 0 40px rgba(0,0,0,0.5); position: relative; z-index: 1; }
         .icon { font-size: 60px; margin-bottom: 20px; animation: pulse 2s infinite; }
-        /* 标题色改为深粉警告色 */
         h1 { font-size: 1.5em; margin: 0 0 15px; color: #ff4f8b; }
         p { color: #e6aecb; line-height: 1.6; font-size: 0.95em; margin-bottom: 0; }
         .divider { height: 1px; background: #3d1e2c; margin: 25px 0; }
