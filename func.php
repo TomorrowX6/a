@@ -5,13 +5,13 @@
 
 $CLIENT_ID = 'AMfmRA61Issgg0hONFPUf6NXDJPV5x9I';
 $CLIENT_SECRET = 'R0zcaAU72LazaqoGv4gTrlMiFHsQNLgs';
-$REDIRECT_URI = 'https://loli.000.moe/oauth_auto_login'; // 你的回调地址，请确保在 LinuxDo 后台填的一模一样
+$REDIRECT_URI = 'https://loli.000.moe/oauth_auto_login'; // 请确保与LinuxDo后台配置一致
 $AUTHORIZATION_ENDPOINT = 'https://connect.linux.do/oauth2/authorize';
 $TOKEN_ENDPOINT = 'https://connect.linux.do/oauth2/token';
 $USER_ENDPOINT = 'https://connect.linux.do/api/user';
 $DOMIAN = 'linux.do'; 
 
-// 核心 CURL 函数 (保持原样，只加了基础错误检查)
+// 核心 CURL 函数
 function callbackFunc($code, $clientId, $clientSecret, $redirectUri) {
     global $TOKEN_ENDPOINT, $USER_ENDPOINT;
     $ch = curl_init($TOKEN_ENDPOINT);
@@ -58,7 +58,7 @@ function getoauth($sess){
     exit();
 }
     
-// 回调处理函数
+// 回调处理函数 (含等级检查)
 function ofmCallback($getCode){
     global $CLIENT_ID, $CLIENT_SECRET, $REDIRECT_URI;
     $userInfo = callbackFunc($getCode, $CLIENT_ID, $CLIENT_SECRET, $REDIRECT_URI);
@@ -69,10 +69,10 @@ function ofmCallback($getCode){
         $username = $userInfo['username'];
         $trust_level = $userInfo['trust_level'];
         
-        // 【修改点】只允许 3 级及以上
+        // 【修改点】等级限制：小于 2 级报错
         if ($trust_level < 2) {
             header('Content-Type: text/html; charset=utf-8');
-            exit("<center><h1>等级不足</h1><p>需要 LinuxDo 2级及以上。<br>你当前等级: {$trust_level}</p></center>");
+            exit("<center><h1>等级不足</h1><p>本次内测仅限 LinuxDo 2级及以上用户参与。<br>你当前等级: {$trust_level}</p></center>");
         }
         return $username;
     }
@@ -87,24 +87,36 @@ function shengcpasswd($is_sess) {
     }
 }
 
+// 数据库操作函数
 function getpasswd($user){
     global $DOMIAN;
-    $passwd = shengcpasswd(false);
-    $password = password_hash($passwd, PASSWORD_BCRYPT);
-    
-    // 生成 UUID 逻辑
-    $data = random_bytes(16);
-    $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
-    $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
-    $uuid = vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-    
-    $token = md5(uniqid(random_bytes(16), true));
-    $now = time();
+    $email = $user . '@' . $DOMIAN;
     
     try {
-        // 【修改点】修复了这里的中文引号，现在是正确的英文引号
         $pdo = new PDO("sqlite:/www/.docker/.data/database.sqlite");
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        // 1. 检查用户是否已存在
+        $checkSql = "SELECT count(*) FROM v2_user WHERE email = :email";
+        $checkStmt = $pdo->prepare($checkSql);
+        $checkStmt->execute([':email' => $email]);
+        
+        if ($checkStmt->fetchColumn() > 0) {
+            // 【关键修改】如果存在，返回特定状态码
+            return 'exist';
+        }
+
+        // 2. 如果不存在，执行注册逻辑
+        $passwd = shengcpasswd(false);
+        $password = password_hash($passwd, PASSWORD_BCRYPT);
+        
+        $data = random_bytes(16);
+        $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
+        $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
+        $uuid = vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+        
+        $token = md5(uniqid(random_bytes(16), true));
+        $now = time();
 
         $sql = "INSERT INTO v2_user (
             invite_user_id, telegram_id, email, password, password_algo, password_salt,
@@ -126,7 +138,7 @@ function getpasswd($user){
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
-            ':email'      => $user.'@'. $DOMIAN,
+            ':email'      => $email,
             ':password'   => $password,
             ':uuid'       => $uuid,
             ':token'      => $token,
@@ -141,4 +153,3 @@ function getpasswd($user){
     }
 }
 ?>
-
