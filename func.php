@@ -1,15 +1,23 @@
 <?php
 // ==========================================
-// func.php - 核心逻辑配置
+// func.php - 核心逻辑配置 (MySQL版)
 // ==========================================
 
+// --- OAuth2 配置 ---
 $CLIENT_ID = 'AMfmRA61Issgg0hONFPUf6NXDJPV5x9I';
 $CLIENT_SECRET = 'R0zcaAU72LazaqoGv4gTrlMiFHsQNLgs';
-$REDIRECT_URI = 'https://loli.000.moe/oauth_auto_login'; // 请确保与LinuxDo后台配置一致
+$REDIRECT_URI = 'https://loli.000.moe/oauth_auto_login'; 
 $AUTHORIZATION_ENDPOINT = 'https://connect.linux.do/oauth2/authorize';
 $TOKEN_ENDPOINT = 'https://connect.linux.do/oauth2/token';
 $USER_ENDPOINT = 'https://connect.linux.do/api/user';
 $DOMIAN = 'linux.do'; 
+
+// --- MySQL 数据库配置 ---
+$DB_HOST = '127.0.0.1';
+$DB_PORT = '3306';
+$DB_NAME = 'xboard';      // 请确认数据库名
+$DB_USER = 'root';
+$DB_PASS = 'Qaz369958';
 
 // 核心 CURL 函数
 function callbackFunc($code, $clientId, $clientSecret, $redirectUri) {
@@ -58,7 +66,7 @@ function getoauth($sess){
     exit();
 }
     
-// 回调处理函数 (含等级检查)
+// 回调处理函数 (等级限制 >= 2)
 function ofmCallback($getCode){
     global $CLIENT_ID, $CLIENT_SECRET, $REDIRECT_URI;
     $userInfo = callbackFunc($getCode, $CLIENT_ID, $CLIENT_SECRET, $REDIRECT_URI);
@@ -69,7 +77,6 @@ function ofmCallback($getCode){
         $username = $userInfo['username'];
         $trust_level = $userInfo['trust_level'];
         
-        // 【修改点】等级限制：小于 2 级报错
         if ($trust_level < 2) {
             header('Content-Type: text/html; charset=utf-8');
             exit("<center><h1>等级不足</h1><p>本次内测仅限 LinuxDo 2级及以上用户参与。<br>你当前等级: {$trust_level}</p></center>");
@@ -89,12 +96,14 @@ function shengcpasswd($is_sess) {
 
 // 数据库操作函数
 function getpasswd($user){
-    global $DOMIAN;
+    global $DOMIAN, $DB_HOST, $DB_PORT, $DB_NAME, $DB_USER, $DB_PASS;
     $email = $user . '@' . $DOMIAN;
     
     try {
-        $pdo = new PDO("sqlite:/www/.docker/.data/database.sqlite");
+        $dsn = "mysql:host={$DB_HOST};port={$DB_PORT};dbname={$DB_NAME};charset=utf8mb4";
+        $pdo = new PDO($dsn, $DB_USER, $DB_PASS);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 
         // 1. 检查用户是否已存在
         $checkSql = "SELECT count(*) FROM v2_user WHERE email = :email";
@@ -102,11 +111,10 @@ function getpasswd($user){
         $checkStmt->execute([':email' => $email]);
         
         if ($checkStmt->fetchColumn() > 0) {
-            // 【关键修改】如果存在，返回特定状态码
             return 'exist';
         }
 
-        // 2. 如果不存在，执行注册逻辑
+        // 2. 注册逻辑
         $passwd = shengcpasswd(false);
         $password = password_hash($passwd, PASSWORD_BCRYPT);
         
@@ -130,11 +138,13 @@ function getpasswd($user){
             NULL, NULL, :email, :password, NULL, NULL,
             0, NULL, 0, NULL, 0,
             0, 0, 0, 0, 0, 0, NULL, 0,
-            NULL, :uuid, 1, 1, NULL, 1,
+            NULL, :uuid, 2, 1, NULL, 1, 
             1, :token, 0, NULL, :created_at, :updated_at,
             NULL, NULL, NULL, NULL, NULL,
             0
         )";
+        // 注意上方 VALUES 中 :uuid 后面的 '2' 即为 group_id (权限组ID)
+        // 紧随其后的 '1' 为 plan_id (订阅计划ID)，如有需要也可修改
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
