@@ -1,0 +1,207 @@
+{
+  "dns": {
+    "fakeip": {
+      "enabled": true,
+      "inet4_range": "198.18.0.0/15",
+      "inet6_range": "fc00::/18"
+    },
+    "final": "dns-remote",
+    "independent_cache": true,
+    "rules": [
+      {
+        "domain": [
+          "dns.google"
+        ],
+        "server": "dns-direct"
+      },
+      {
+        "outbound": [
+          "any"
+        ],
+        "server": "dns-direct"
+      },
+      {
+        "domain_suffix": [
+          "googleapis.cn"
+        ],
+        "inbound": [
+          "tun-in"
+        ],
+        "server": "dns-fake"
+      },
+      {
+        "domain_suffix": [
+          "googleapis.cn"
+        ],
+        "server": "dns-remote"
+      },
+      {
+        "rule_set": [
+          "geosite:cn"
+        ],
+        "server": "dns-direct"
+      },
+      {
+        "disable_cache": true,
+        "inbound": [
+          "tun-in"
+        ],
+        "server": "dns-fake"
+      }
+    ],
+    "servers": [
+      {
+        "address": "rcode://success",
+        "tag": "dns-block"
+      },
+      {
+        "address": "local",
+        "detour": "direct",
+        "tag": "dns-local"
+      },
+      {
+        "address": "https://223.5.5.5/dns-query",
+        "address_resolver": "dns-local",
+        "detour": "direct",
+        "strategy": "prefer_ipv6",
+        "tag": "dns-direct"
+      },
+      {
+        "address": "https://dns.google/dns-query",
+        "address_resolver": "dns-direct",
+        "strategy": "prefer_ipv6",
+        "tag": "dns-remote"
+      },
+      {
+        "address": "fakeip",
+        "strategy": "ipv4_only",
+        "tag": "dns-fake"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "domain_strategy": "",
+      "endpoint_independent_nat": true,
+      "inet4_address": [
+        "172.19.0.1/28"
+      ],
+      "inet6_address": [
+        "fdfe:dcba:9876::1/126"
+      ],
+      "mtu": 9000,
+      "sniff": true,
+      "sniff_override_destination": false,
+      "stack": "gvisor",
+      "tag": "tun-in",
+      "type": "tun"
+    },
+    {
+      "domain_strategy": "",
+      "listen": "127.0.0.1",
+      "listen_port": 2080,
+      "sniff": true,
+      "sniff_override_destination": false,
+      "tag": "mixed-in",
+      "type": "mixed"
+    }
+  ],
+  "log": {
+    "level": "panic"
+  },
+  "outbounds": [
+    {
+      "domain_strategy": "prefer_ipv4",
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "server": "82.40.33.48",
+      "server_port": 27006,
+      "tls": {
+        "enabled": true,
+        "insecure": true,
+        "reality": {
+          "enabled": true,
+          "public_key": "kbrt0cYP5Ne3aZ755ELyTywMtjDjbanj7jP6sAvgqxw",
+          "short_id": "2ffd"
+        },
+        "server_name": "www.tesla.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "uuid": "1dacaf03-421b-4680-8c96-be6c7237cfcd",
+      "tag": "proxy",
+      "type": "vless"
+    },
+    {
+      "tag": "direct",
+      "type": "direct"
+    },
+    {
+      "tag": "bypass",
+      "type": "direct"
+    }
+  ],
+  "route": {
+    "auto_detect_interface": true,
+    "rule_set": [
+      {
+        "format": "binary",
+        "path": "geosite:cn",
+        "tag": "geosite:cn",
+        "type": "local"
+      },
+      {
+        "format": "binary",
+        "path": "geoip:cn",
+        "tag": "geoip:cn",
+        "type": "local"
+      }
+    ],
+    "rules": [
+      {
+        "action": "hijack-dns",
+        "port": [
+          53
+        ]
+      },
+      {
+        "action": "hijack-dns",
+        "protocol": [
+          "dns"
+        ]
+      },
+      {
+        "domain_suffix": [
+          "googleapis.cn"
+        ],
+        "outbound": "proxy",
+        "rule_set": []
+      },
+      {
+        "outbound": "bypass",
+        "rule_set": [
+          "geosite:cn"
+        ]
+      },
+      {
+        "outbound": "bypass",
+        "rule_set": [
+          "geoip:cn"
+        ]
+      },
+      {
+        "action": "reject",
+        "ip_cidr": [
+          "224.0.0.0/3",
+          "ff00::/8"
+        ],
+        "source_ip_cidr": [
+          "224.0.0.0/3",
+          "ff00::/8"
+        ]
+      }
+    ]
+  }
+}
